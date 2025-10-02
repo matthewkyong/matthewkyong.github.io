@@ -1,0 +1,413 @@
+/* reset and base */
+body {
+    margin: 0;
+    font-family: 'Manrope', system-ui, sans-serif;
+    background: #4D3942;
+    color: #ffffff;
+}
+
+/* header container that controls overall alignment */
+.header{
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-end;
+    flex-wrap: wrap; /* allows wrapping when too narrow */
+    margin: 0 auto;
+    padding: 4rem 0 0.5rem 0;
+
+    /* responsive sizing */
+    width: min(900px);
+    max-width: calc(100% - 20vw);
+    box-sizing: border-box;
+}
+
+/* Left side  Name + Title */
+.header-left{
+    display: flex;
+    flex-direction: row;
+    align-items: flex-end;
+    gap: 0.5rem;
+    white-space: nowrap;
+    min-width: 0;
+    flex-shrink: 1;
+}
+
+/* Right Side Nav + buttons */
+.header-right{
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    gap: 0.3rem;
+    margin-left: auto;
+    min-width: 0;
+    flex-shrink: 0;
+}
+
+/* Set up different elements */
+
+.name {
+    font-size: 2rem;
+    font-weight: 700;
+    margin: 0;
+    line-height: 1.2;
+}
+
+.title {
+    font-size: 1.2rem;
+    font-weight: 300;
+    margin-bottom: 0 0 0.2rem 0;
+    line-height: 1.2;
+}
+
+.icon-button {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 1.6rem;
+    height: 1.6rem;
+    cursor: pointer;
+    position: relative;
+}
+
+.icon-button svg {
+    width: 100%;
+    height: 100%;
+    fill: #ffff;
+    transition: transform 0.2s;
+}
+
+.icon-button:hover svg {
+    transform: scale(1.1);
+    fill: #e2a6bf;
+}
+
+.contact-button {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: auto;
+    height: 1.6rem;
+    flex: none;
+}
+
+.contact-button button {
+    background: none;
+    border: none;
+    padding: 0;
+    margin: 0;
+    font: inherit;
+    font-size: 1.1rem;
+    font-weight: 200;
+    color: #ffffff;
+    cursor: pointer;
+
+    position: relative;
+    transition: color 0.2s;
+    white-space: nowrap;
+}
+.contact-button:hover button {
+    color: #e2a6bf;
+}
+
+/* Tooltip */
+.contact-button .tooltip {
+  position: absolute;
+  bottom: 100%;
+  left: 50%;
+  transform: translateX(-50%) translateY(5px);
+  font-size: 0.8rem;
+  font-weight: 200;
+  color: #e2a6bf;
+  padding: 0rem 0rem;
+  border-radius: 4px;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.2s ease, transform 0.2s ease;
+  white-space: nowrap;
+  z-index: 10;
+}
+
+.contact-button .tooltip.show {
+  opacity: 1;
+  transform: translateX(-50%) translateY(0px);
+}
+
+/* Dynamically center right nav when wrapped */
+.header-right:only-child, .header-right {
+    flex-wrap: wrap;
+}
+
+.title-filter {
+    position: relative;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.3rem;
+    cursor: pointer;
+    font-weight: 500;
+}
+
+.title-filter .dropdown-arrow {
+    opacity: 0;
+    transition: opacity 0.3s ease, transform 0.3s ease;
+}
+
+.title-filter:hover .dropdown-arrow {
+    opacity: 1;
+}
+
+.title-filter.active .dropdown-arrow {
+    transform: rotate(180deg);
+}
+
+.title-options {
+    display: none;
+    position: absolute;
+    top: 100%;
+    left: 0;
+    background: rgba(77, 57, 66, 0.8);
+    list-style: none;
+    margin: 0;
+    padding: 0.5rem 0;
+    border-radius: 6px;
+    box-shadow: 0 4px 8px rgba(0,0,0,0.3);
+    min-width: max-content;
+    z-index: 100;
+}
+
+.title-options li {
+    padding: 0.4rem 1rem;
+    font-size: 1rem;
+    font-weight: 300;
+    white-space: nowrap;
+    transition: background 0.2s;
+}
+
+.title-options li:hover {
+    background: #e2a6bf;
+}
+
+.title-filter.active .title-options {
+    display: block;
+}
+
+/* Debug Outlines 
+.header-left, .header-right, .icon-button, .contact-button { outline: 1px dashed rgba(255,255,255,0.15); }
+*/
+
+/* --------- Main Content Area ------------- */
+.reel-block {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    margin-bottom: 0.5rem;
+    overflow: hidden;
+}
+
+.reel-preview {
+    position: relative;
+    width: min(900px, calc(100% - 25vw));
+    aspect-ratio: 16 / 9;
+    overflow: hidden;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: all 0.4s ease;
+}
+
+.reel-thumb {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    object-position: center;
+    display: block;
+}
+
+.reel-hover {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    object-position: center;
+    display: none;
+}
+
+.reel-preview:hover .reel-thumb {
+    display: none;
+}
+.reel-preview:hover .reel-hover {
+    display: block;
+}
+
+.video-block {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    margin-bottom: 0.5rem;
+    overflow: hidden;
+}
+
+.video-preview {
+    position: relative;
+    width: min(900px, calc(100% - 25vw));
+    height: 14vh;
+    max-height: 200px;
+    overflow: hidden;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: all 0.4s ease;
+}
+
+.video-thumb {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    object-position: center;
+    display: block;
+}
+
+.video-hover {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    object-position: center;
+    display: none;
+}
+
+.video-preview:hover .video-thumb {
+    display: none;
+}
+
+.video-preview:hover .video-hover {
+    display: block;
+}
+
+.reel-preview:hover,
+.video-preview:hover {
+    transform: scaleX(1.03);
+}
+
+.reel-description, .video-description {
+    position: relative;
+    opacity: 0;
+    transition: opacity 0.4s ease, transform 0.4s ease;
+    pointer-events: none;
+    text-align: center;
+    font-weight: 500;
+    line-height: 1.2;
+    white-space: pre-line;
+}
+
+.reel-description.left,
+.video-description.left {
+    margin-right: 1rem;
+}
+
+.reel-description.right,
+.video-description.right {
+    margin-left: 1rem;
+}
+
+.reel-description p, .video-description p {
+    margin: 0;
+}
+
+.reel-description.show,
+.video-description.show {
+    opacity: 1;
+}
+
+.video-modal {
+    display: none;
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    justify-content: center;
+    align-items: flex-start;
+    padding-top: 6.5rem;
+    opacity: 0;
+    transition: opacity 0.4s ease;
+    z-index: 999;
+}
+
+.video-modal.show {
+    opacity: 1;
+}
+
+.video-modal-player {
+    position: relative;
+    width: 95vw;     
+    max-width: 1600px;
+    aspect-ratio: 16 / 9;
+    border-radius: 8px;
+    overflow: hidden;      
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    background: rgba(0, 0, 0, 0.8);
+    padding: 0;
+    transition: opacity 0.4s ease;
+}
+
+.video-modal-player.show {
+    opacity: 1;
+}
+
+.video-modal-player iframe {
+    width: 96%;
+    height: 96%;
+    display: block;
+    border-radius: 0; /* remove rounding */
+}
+
+.close-modal {
+    position: absolute;
+    top: 0px;  
+    right: 0px;        
+    font-size: 32px;
+    color: rgba(255, 255, 255, 0.8);
+    cursor: pointer;
+    font-weight: bold;
+    border-radius: 50%;
+    width: 36px;
+    height: 36px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.close-modal:hover {
+    color: #ffffff;
+}
+
+/* --- Responsive column stacking --- */
+@media (max-width: 700px) {
+  .header {
+    flex-direction: column;        /* stack vertically */
+    align-items: center;           /* center items horizontally */
+    text-align: center;
+    width: 90%;                    /* use most of the viewport */
+  }
+
+  .header-left {
+    flex-direction: column;
+    align-items: center;
+    white-space: normal;           /* allow text wrapping if needed */
+    margin-bottom: 1rem;         /* spacing between title and nav */
+    gap: 0.2rem;
+  }
+
+  .header-right {
+    margin-left: 0;
+    justify-content: center;
+  }
+
+  .video-modal {
+    padding-top: 11rem;
+  }
+}
