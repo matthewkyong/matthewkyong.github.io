@@ -1,5 +1,5 @@
 document.addEventListener('DOMContentLoaded', () => {
-  // Contact Button
+  // ========== Contact Button ========== //
   const contactButton = document.getElementById('copy-email');
   const tooltip = contactButton.nextElementSibling;
   const emailAddress = 'matthewkyong@gmail.com';
@@ -10,7 +10,6 @@ document.addEventListener('DOMContentLoaded', () => {
       if (!tooltipVisible) {
         tooltipVisible = true;
         tooltip.classList.add('show');
-
         setTimeout(() => {
           tooltip.classList.remove('show');
           tooltipVisible = false;
@@ -19,7 +18,7 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   });
 
-  // ------------ Title Filter --------------- //
+  // ========== Title Filter ========== //
   const titleFilter = document.querySelector('.title-filter');
   const selectedTitle = titleFilter.querySelector('.selected-title');
   const dropdownArrow = titleFilter.querySelector('.dropdown-arrow');
@@ -32,12 +31,8 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   }
 
-  // Toggle dropdown
-  selectedTitle.addEventListener('click', () => {
-    titleFilter.classList.toggle('active');
-  });
+  selectedTitle.addEventListener('click', () => {titleFilter.classList.toggle('active');});
 
-  // Handle option selection
   titleOptions.forEach(option => {
     option.addEventListener('click', () => {
       const filter = option.dataset.filter;
@@ -52,19 +47,39 @@ document.addEventListener('DOMContentLoaded', () => {
         dropdownArrow.style.display = 'none';
         selectedTitle.style.color = '#e2a6bf';
       }
-
       titleFilter.classList.remove('active');
     });
   });
 
-  // Click outside closes dropdown
-  document.addEventListener('click', (e) => {
-    if (!titleFilter.contains(e.target)) {
-      titleFilter.classList.remove('active');
-    }
+  // ========== Helper Functions ========== //
+  const getDescriptions = (preview) => ({
+    left: preview.parentElement.querySelector('.left'),
+    right: preview.parentElement.querySelector('.right')
   });
 
-  //-------------- VIDEO MODAL --------------- //
+  const togglePreviewGif = (preview, showGif = false) => {
+    const thumb = preview.querySelector('.reel-thumb, .video-thumb');
+    const gif = preview.querySelector('.reel-gif, .video-gif');
+    if (thumb) thumb.style.opacity = showGif ? '0' : '1';
+    if (gif) gif.style.display = showGif ? 'block' : '';
+  };
+
+  const resetPreview = (preview) => {
+    preview.style.transform = '';
+    togglePreviewGif(preview, false);
+    const { left, right } = getDescriptions(preview);
+    left?.classList.remove('show');
+    right?.classList.remove('show');
+    
+    const playBtn = preview.querySelector('.play-button');
+    if (playBtn) playBtn.classList.remove('show');
+  };
+
+  function isMobileLayout() {
+    return window.innerWidth <= 800;
+  }
+
+  // ========== Video Modal ========== //
   const videoModal = document.querySelector('.video-modal');
   const iframe = videoModal.querySelector('iframe');
   const closeModal = videoModal.querySelector('.close-modal');
@@ -72,23 +87,59 @@ document.addEventListener('DOMContentLoaded', () => {
   const modalLeft = videoModal.querySelector('.modal-description.left');
   const modalRight = videoModal.querySelector('.modal-description.right');
 
-  document.addEventListener('click', e => {
-    const preview = e.target.closest('.video-preview, .reel-preview');
+  const previews = document.querySelectorAll('.reel-preview, .video-preview');
 
-    if (preview) {
+  previews.forEach(preview => {
+    let activated = false; // tracks first tap on mobile
 
+    preview.addEventListener('click', (e) => {
+      const { left, right } = getDescriptions(preview);
+
+      // --- MOBILE FIRST TAP ---
+      if (isMobileLayout() && !activated) {
+        e.preventDefault(); // prevent modal
+        activated = true;
+
+        togglePreviewGif(preview, true);
+        preview.style.transition = 'transform 0.3s ease';
+        preview.style.transform = 'scaleX(1.03)';
+        left?.classList.add('show');
+        right?.classList.add('show');
+
+        let playBtn = preview.querySelector('.play-button');
+        if (!playBtn) {
+          playBtn = document.createElement('div');
+          playBtn.className = 'play-button';
+          playBtn.innerHTML = '▶';
+          preview.appendChild(playBtn);
+        }
+        playBtn.classList.add('show');
+
+        const outsideClick = (ev) => {
+          if (!preview.contains(ev.target)) {
+            resetPreview(preview);
+            activated = false;
+            document.removeEventListener('click', outsideClick);
+          }
+        };
+        document.addEventListener('click', outsideClick);
+        return; // exit to prevent modal opening
+      }
+
+      // --- SECOND TAP / DESKTOP CLICK ---
+      activated = false;
+      resetPreview(preview);
+
+      // Load video
       if (preview.dataset.vimeoId) {
         iframe.src = `https://player.vimeo.com/video/${preview.dataset.vimeoId}?title=0&byline=0&portrait=0&autoplay=0`;
+      } else if (preview.dataset.youtubeId) {
+        iframe.src = `https://www.youtube.com/embed/${preview.dataset.youtubeId}?autoplay=0&rel=0`;
       }
-      else if (preview.dataset.youtubeId) {
-        iframe.src  = `https://www.youtube.com/embed/${preview.dataset.youtubeId}?autoplay=0&rel=0`;
-      }
-      
-      videoModal.style.display = 'flex';
 
-      const parentBlock = preview.parentElement;
-      modalLeft.innerHTML = parentBlock.querySelector('.left p')?.innerHTML || '';
-      modalRight.innerHTML = parentBlock.querySelector('.right p')?.innerHTML || '';
+      videoModal.style.display = 'flex';
+      modalLeft.innerHTML = left?.querySelector('p')?.innerHTML || '';
+      modalRight.innerHTML = right?.querySelector('p')?.innerHTML || '';
 
       requestAnimationFrame(() => {
         videoModal.classList.add('show');
@@ -96,49 +147,55 @@ document.addEventListener('DOMContentLoaded', () => {
         modalLeft.classList.add('show');
         modalRight.classList.add('show');
       });
-      return;
-    }
-
-    if (videoModal.classList.contains('show')) {
-      if (e.target === closeModal || !e.target.closest('.video-modal-player')) {
-        videoModal.classList.remove('show');
-        modalPlayer.classList.remove('show');
-        modalLeft.classList.remove('show');
-        modalRight.classList.remove('show');
-
-        setTimeout(() => {
-          videoModal.style.display = 'none';
-          iframe.src = '';
-        }, 400);
-      }
-    }
+    });
   });
 
-  // ----------- TEXT ON HOVER -----------
+  // ========== Hover Text ========== //
   const contentContainer = document.querySelector('.content');
 
-  contentContainer.addEventListener('mouseover', e => {
-    const preview = e.target.closest('.reel-preview, .video-preview');
+  const toggleHoverTexts = (preview, add = true) => {
     if (!preview) return;
+    const { left, right } = getDescriptions(preview);
+    left?.classList[add ? 'add' : 'remove']('show');
+    right?.classList[add ? 'add' : 'remove']('show');
+  };
 
-    const parent = preview.parentElement;
-    parent.querySelector('.left')?.classList.add('show');
-    parent.querySelector('.right')?.classList.add('show');
+  contentContainer.addEventListener('mouseover', e => {
+    if (!isMobileLayout()) toggleHoverTexts(e.target.closest('.reel-preview, .video-preview'), true);
   });
 
   contentContainer.addEventListener('mouseout', e => {
-    const preview = e.target.closest('.reel-preview, .video-preview');
-    if (!preview) return;
-
-    const parent = preview.parentElement;
-    parent.querySelector('.left')?.classList.remove('show');
-    parent.querySelector('.right')?.classList.remove('show');
+    if (!isMobileLayout()) toggleHoverTexts(e.target.closest('.reel-preview, .video-preview'), false);
   });
 
-
+  // ========== Disable Drag / Context Menu ========== //
   document.querySelectorAll('.reel-preview img, .reel-preview video, .video-preview img, .video-preview video')
     .forEach(media => {
       media.setAttribute('draggable', 'false');
       media.addEventListener('contextmenu', e => e.preventDefault());
+  });
+
+  // ========== Window Resize ========== //
+  let wasMobile = isMobileLayout();
+  window.addEventListener('resize', () => {
+    const nowMobile = isMobileLayout();
+    if (wasMobile !== nowMobile) previews.forEach(resetPreview);
+    wasMobile = nowMobile;
+  });
+
+  // ========== Document Click (Consolidated) ========== //
+  document.addEventListener('click', (e) => {
+    //close dropdown
+    if (!titleFilter.contains(e.target)) titleFilter.classList.remove('active');
+
+    //close modal
+    if (videoModal.classList.contains('show') &&
+        (e.target === closeModal || !e.target.closest('.video-modal-player'))){
+      videoModal.classList.remove('show');
+      modalPlayer.classList.remove('show');
+      modalLeft.classList.remove('show');
+      modalRight.classList.remove('show');
+      setTimeout(() => { videoModal.style.display = 'none'; iframe.src = ''; }, 400);
+    }
   });
 });
