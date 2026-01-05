@@ -1,4 +1,184 @@
 document.addEventListener('DOMContentLoaded', () => {
+
+  // ========== Detect if mobile ========== //
+  window.isMobile = function() {
+    if(window.matchMedia("(any-hover:none)").matches) {
+      return true;
+    } else {
+      return false;
+    }
+  };
+
+  // ========== Theme Toggle ========== //
+  const themeToggleBtn = document.getElementById('theme-toggle-btn');
+  const themeToggle = document.querySelector('.theme-toggle');
+  const easterEggToggle = document.querySelector('.theme-toggle-easteregg');
+
+  const standardThemes = ['light', 'dark'];
+  const easterEggThemes = ['pokemon', 'ds3', 'acnh', 'halo', 'genshin', 'phasmo'];
+  let mouseMoveHandler = null;
+
+  let previousTheme = 'dark';
+  let previousEasterEggTheme = 'pokemon';
+
+  const isEasterEgg = (theme) => easterEggThemes.includes(theme);
+  const isStandardTheme = (theme) => standardThemes.includes(theme);
+
+
+  // Check for saved theme preference or default to system preference
+  const getPreferredTheme = () => {
+    const savedTheme = localStorage.getItem('theme');
+    if (savedTheme) {
+      return savedTheme;
+    }
+    return 'dark'
+  };
+
+  // Apply theme
+  const setTheme = (theme) => {
+    document.documentElement.setAttribute('data-theme', theme);
+    document.body.setAttribute('data-theme', theme);
+    localStorage.setItem('theme', theme);
+
+    if (theme === 'light') {
+      themeToggle.classList.add('dark-toggle');
+    } else if (theme === 'dark') {
+      themeToggle.classList.remove('dark-toggle');
+    }
+
+    const wasEasterEgg = easterEggToggle.classList.contains('active');
+    const isNowEasterEgg = isEasterEgg(theme);
+
+    if (isNowEasterEgg) {
+      if (!wasEasterEgg) {
+        easterEggToggle.classList.add('active');
+      }
+      document.querySelectorAll('.gif').forEach(gif => gif.classList.remove('active'));
+      const targetGif = document.querySelector(`.gif[data-theme="${theme}"]`);
+      if (targetGif) {
+        targetGif.classList.add('active');
+      }
+      previousEasterEggTheme = theme;
+    } else {
+      if (wasEasterEgg) {
+        easterEggToggle.classList.remove('active');
+        document.querySelectorAll('.gif.active').forEach(gif => gif.classList.remove('active'));
+      }
+    }
+    if (theme === 'phasmo' || wasEasterEgg) {
+      handlePhasmoFlashlight();
+    }
+  };
+
+  const handlePhasmoFlashlight = () => {
+  const phasmoOverlay = document.querySelector('.phasmo-overlay');
+  const currentTheme = document.documentElement.getAttribute('data-theme');
+
+  if (currentTheme === 'phasmo') {
+    if (currentTheme === 'phasmo') {
+      mouseMoveHandler = (e) => {
+      const x = e.clientX;
+      const y = e.clientY;
+      phasmoOverlay.style.background = `radial-gradient(circle 150px at ${x}px ${y}px, rgba(255, 255, 255, 0.2) 0%, rgba(0, 0, 0, 0.85) 100%)`;
+    };
+      document.addEventListener('mousemove', mouseMoveHandler);
+    }
+  } else {
+    if (mouseMoveHandler) {
+      document.removeEventListener('mousemove', mouseMoveHandler);
+      mouseMoveHandler = null;
+    }
+    phasmoOverlay.style.background = 'rgba(0, 0, 0, 0.85)';
+  }
+};
+
+  // Initialize theme on page load
+  const initialTheme = getPreferredTheme();
+  setTheme(initialTheme);
+
+  if (isEasterEgg(initialTheme)) {
+    const storedPreviousTheme = localStorage.getItem('previousStandardTheme');
+    if (storedPreviousTheme && isStandardTheme(storedPreviousTheme)) {
+      previousTheme = storedPreviousTheme;
+    }
+    if (previousTheme === 'light') {
+      themeToggle.classList.remove('dark-toggle');
+    } else {
+      themeToggle.classList.add('dark-toggle');
+    }
+  } else {
+    previousTheme = initialTheme;
+  }
+
+  // Toggle theme on button click
+  themeToggleBtn.addEventListener('click', () => {
+    const currentTheme = document.documentElement.getAttribute('data-theme');
+    if (isEasterEgg(currentTheme)) {
+      document.querySelectorAll('.gif').forEach(gif => gif.classList.remove('active'));
+      setTheme(previousTheme);
+    } else {
+      const newTheme = currentTheme === 'dark' ? 'light' : 'dark';
+      previousTheme = newTheme;
+      localStorage.setItem('previousStandardTheme', newTheme);
+      setTheme(newTheme);
+    }
+  });
+
+  easterEggToggle.addEventListener('click', () => {
+    const currentTheme = document.documentElement.getAttribute('data-theme');
+    const currentIndex = easterEggThemes.indexOf(currentTheme);
+    const nextIndex = (currentIndex + 1) % easterEggThemes.length;
+    setTheme(easterEggThemes[nextIndex]);
+  });
+
+  // ========== Easter Eggs ========== //
+  const konamiCode = ['ArrowUp', 'ArrowUp', 'ArrowDown', 'ArrowDown', 'ArrowLeft', 'ArrowRight', 'ArrowLeft', 'ArrowRight', 'b', 'a', 'Enter'];
+  let konamiIndex = 0;
+
+  document.addEventListener('keydown', (e) => {
+    const keycheck = konamiCode[konamiIndex];
+    const pressedKey = e.key;
+
+    const keyMatch = pressedKey === keycheck || pressedKey.toLowerCase() === keycheck.toLowerCase();
+
+    if (keyMatch) {
+      konamiIndex++;
+
+      if (konamiIndex === konamiCode.length) {
+        const currentTheme = document.documentElement.getAttribute('data-theme');
+        if (isStandardTheme(currentTheme)) {
+          previousTheme = currentTheme;
+          localStorage.setItem('previousStandardTheme', currentTheme);
+          if (previousTheme === 'dark') {
+            themeToggle.classList.add('dark-toggle');
+          } else if (previousTheme === 'light') {
+            themeToggle.classList.remove('dark-toggle');
+          }
+        }
+        setTheme(previousEasterEggTheme);
+        konamiIndex = 0;
+        window.scrollTo({
+          top: 0,
+          behavior: 'smooth'
+        });
+      }
+    } else {
+      konamiIndex = 0;
+    }
+  });
+
+  // ========== Sort Video Blocks by Date ========== //
+  const videoWrapper = document.querySelector('.video-wrapper');
+  if (videoWrapper) {
+    const videoBlocks = Array.from(videoWrapper.querySelectorAll('.video-block'));
+    videoBlocks.sort((a, b) => {
+      const dateA = new Date(a.dataset.date || '1970-01-01');
+      const dateB = new Date(b.dataset.date || '1970-01-01');
+      return dateB - dateA; // Newest first
+    });
+    videoBlocks.forEach(block => videoWrapper.appendChild(block));
+  }
+
   // ========== Contact Button ========== //
   const contactButton = document.getElementById('copy-email');
   const tooltip = contactButton.nextElementSibling;
@@ -23,179 +203,331 @@ document.addEventListener('DOMContentLoaded', () => {
   const selectedTitle = titleFilter.querySelector('.selected-title');
   const dropdownArrow = titleFilter.querySelector('.dropdown-arrow');
   const titleOptions = titleFilter.querySelectorAll('.title-options li');
+  
 
   function filterContent(filter) {
     const allContent = document.querySelectorAll('.reel-block, .video-block');
     allContent.forEach(block => {
-      block.style.display = !filter || block.dataset.type === filter ? 'flex' : 'none';
+      if (!filter) {
+        block.style.display = 'flex';
+      } else {
+        const types = (block.dataset.type || '').split(' ');
+        block.style.display = types.includes(filter) ? 'flex' : 'none';
+      }
     });
   }
 
-  selectedTitle.addEventListener('click', () => {titleFilter.classList.toggle('active');});
+  titleFilter.addEventListener('click', () => {titleFilter.classList.toggle('active');});
 
   titleOptions.forEach(option => {
     option.addEventListener('click', () => {
       const filter = option.dataset.filter;
-      filterContent(filter);
-
-      if (!filter) {
-        selectedTitle.textContent = 'SOUND DESIGNER';
-        dropdownArrow.style.display = 'inline';
-        selectedTitle.style.color = '#ffffff';
-      } else {
-        selectedTitle.textContent = option.textContent;
-        dropdownArrow.style.display = 'none';
-        selectedTitle.style.color = '#e2a6bf';
-      }
+      applyFilterWithRouting(filter, true);
       titleFilter.classList.remove('active');
     });
   });
 
-  // ========== Helper Functions ========== //
-  const getDescriptions = (preview) => ({
-    left: preview.parentElement.querySelector('.left'),
-    right: preview.parentElement.querySelector('.right')
+  // ========== Hamburger Menu ========== //
+  const hamburgerWrapper = document.querySelector('.hamburger-wrapper');
+  const hamburgerMenu = document.getElementById('hamburger');
+
+  hamburgerMenu.addEventListener('click', () => {
+    hamburgerWrapper.classList.toggle('active');
   });
 
-  const togglePreviewGif = (preview, showGif = false) => {
-    const thumb = preview.querySelector('.reel-thumb, .video-thumb');
-    const gif = preview.querySelector('.reel-gif, .video-gif');
-    if (thumb) thumb.style.opacity = showGif ? '0' : '1';
-    if (gif) gif.style.display = showGif ? 'block' : '';
+  document.addEventListener('click', (e) => {
+    if (!hamburgerWrapper.contains(e.target)) {
+      hamburgerWrapper.classList.remove('active');
+    }
+  });
+
+  // ========== URL Routing ========== //
+  const routes = {
+    '': { filter: '', title: 'SOUND DESIGNER' },
+    'sounddesign': { filter: 'sound', title: 'SOUND DESIGNER' },
+    'music': { filter: 'music', title: 'MUSIC PRODUCER' },
+    'audioengineering': { filter: 'audio', title: 'AUDIO ENGINEER' },
   };
 
-  const resetPreview = (preview) => {
-    preview.style.transform = '';
-    togglePreviewGif(preview, false);
-    const { left, right } = getDescriptions(preview);
-    left?.classList.remove('show');
-    right?.classList.remove('show');
-    
-    const playBtn = preview.querySelector('.play-button');
-    if (playBtn) playBtn.classList.remove('show');
-  };
-
-  function isMobileLayout() {
-    return window.innerWidth <= 800;
+  // Get route from path
+  function getRouteFromPath(path) {
+    const cleanPath = path.replace(/^\/|\/$/g, '');
+    return routes[cleanPath] || routes[''];
   }
 
-  // ========== Video Modal ========== //
+  // Get path from filter
+  function getPathFromFilter(filter) {
+    return Object.keys(routes).find(path => routes[path].filter === filter) || '';
+  }
+
+  // Apply filter and update URL
+  function applyFilterWithRouting(filter, updateURL = true) {
+    filterContent(filter);
+    
+    const route = routes[getPathFromFilter(filter)];
+
+    selectedTitle.textContent = route.title;
+
+    if (filter) {
+      selectedTitle.classList.add('active');
+    } else {
+      selectedTitle.classList.remove('active');
+    }
+    
+    if (updateURL) {
+      const path = getPathFromFilter(filter);
+      const newURL = path ? `/${path}` : '/';
+      window.history.pushState({ filter }, '', newURL);
+    }
+  }
+
+  // browser back/forward buttons
+  window.addEventListener('popstate', (e) => {
+    const path = window.location.pathname.replace(/^\/|\/$/g, '');
+    const route = getRouteFromPath(path);
+    
+    if (route.filter !== undefined) {
+      applyFilterWithRouting(route.filter, false);
+    }
+  });
+
+  // Apply filter on page load based on URL
+  const initialRoute = getRouteFromPath(window.location.pathname);
+  if (initialRoute.filter) {
+    applyFilterWithRouting(initialRoute.filter, false);
+  }
+
+  // ========== Back to top button ========== // 
+  const backToTopBtn = document.getElementById('back-to-top');
+  backToTopBtn.addEventListener('click', () => {
+    window.scrollTo({
+      top: 0,
+      behavior: 'smooth'
+    });
+
+    if (isMobile()) {
+      const backToTopText = backToTopBtn.querySelector('.back-to-top-text');
+
+      backToTopText.style.opacity = '1';
+      backToTopText.style.transform = 'translateY(0px)';
+      backToTopBtn.style.transform = 'translateY(-5px)';
+      
+      setTimeout(() => {
+        backToTopText.style.opacity = '0';
+        backToTopText.style.transform = 'translateY(-5px)';
+        backToTopBtn.style.transform = 'translateY(0px)';
+      }, 1000);
+    }
+  });
+
+  // ========== Video Previews ========== //
+  const previews = document.querySelectorAll('.reel-preview, .video-preview');
+  previews.forEach(preview => {
+    const video = preview.querySelector('.reel-preview-video, .video-preview-video');
+    const overlayVideo = preview.querySelector('.preview-overlay-video');
+
+    preview.addEventListener('mouseenter', () => {
+      if(video) {
+        if (!video.dataset.loaded) {
+          video.load();
+          video.dataset.loaded = 'true';
+        }
+        video.currentTime = 0;
+        video.play();
+      }
+
+    if (overlayVideo && easterEggToggle.classList.contains('active')) {
+      const currentTheme = document.documentElement.getAttribute('data-theme');
+      if (currentTheme === 'genshin') {
+        if (!overlayVideo.dataset.loaded) {
+          overlayVideo.load();
+          overlayVideo.dataset.loaded = 'true';
+        }
+        overlayVideo.currentTime = 0;
+        overlayVideo.play();
+      }
+    }
+  });
+    
+    preview.addEventListener('mouseleave', () => {
+      video.pause();
+      video.currentTime = 0;
+
+      if (overlayVideo) {
+        overlayVideo.pause();
+        overlayVideo.currentTime = 0;
+      }
+    });
+  });
+
+  // ========== Video Modal Setup ========== //
   const videoModal = document.querySelector('.video-modal');
   const iframe = videoModal.querySelector('iframe');
-  const closeModal = videoModal.querySelector('.close-modal');
+  const closeModalButton = videoModal.querySelector('.close-modal-button');
   const modalPlayer = videoModal.querySelector('.video-modal-player');
   const modalLeft = videoModal.querySelector('.modal-description.left');
   const modalRight = videoModal.querySelector('.modal-description.right');
 
-  const previews = document.querySelectorAll('.reel-preview, .video-preview');
+  function openModal(preview) {
+    const block = preview.closest('.reel-block, .video-block');
+    const leftDesc = block.querySelector('.reel-description.left, .video-description.left');
+    const rightDesc = block.querySelector('.reel-description.right, .video-description.right');
+
+    // Load video source
+    if (preview.dataset.vimeoId) {
+      iframe.src = `https://player.vimeo.com/video/${preview.dataset.vimeoId}?title=0&byline=0&portrait=0&autoplay=0`;
+    } else if (preview.dataset.youtubeId) {
+      const youtubeId = preview.dataset.youtubeId;
+      const separator = youtubeId.includes('?') ? '&' : '?';
+      iframe.src = `https://www.youtube.com/embed/${youtubeId}${separator}autoplay=0&rel=0`;
+    } else if (preview.dataset.spotifyId) {
+      iframe.src = `https://open.spotify.com/embed/track/${preview.dataset.spotifyId}?utm_source=generator`;
+    }
+
+    // Set descriptions
+    videoModal.style.display = 'flex';
+    modalLeft.innerHTML = leftDesc?.querySelector('p')?.innerHTML || '';
+    modalRight.innerHTML = rightDesc?.querySelector('p')?.innerHTML || '';
+
+    // Show modal with animation
+    requestAnimationFrame(() => {
+      videoModal.classList.add('show');
+      modalPlayer.classList.add('show');
+      modalLeft.classList.add('show');
+      modalRight.classList.add('show');
+    });
+  }
+
+  function closeModal() {
+    videoModal.classList.remove('show');
+    modalPlayer.classList.remove('show');
+    modalLeft.classList.remove('show');
+    modalRight.classList.remove('show');
+    setTimeout(() => {
+      videoModal.style.display = 'none';
+      iframe.src = '';
+    }, 400);
+  }
+
+  // ========== Click handler ========== //
+  let selectedPreview = null;
 
   previews.forEach(preview => {
-    let activated = false; // tracks first tap on mobile
-
     preview.addEventListener('click', (e) => {
-      const { left, right } = getDescriptions(preview);
+      // desktop device
+      if(!isMobile()) {
+        openModal(preview);
+      // mobile device
+      } else if (isMobile()) {
+          if (selectedPreview === preview) {
+            openModal(preview);
+            selectedPreview = null;
+          } else {
+            if (selectedPreview) {
+              resetPreview(selectedPreview);
+            }
 
-      // --- MOBILE FIRST TAP ---
-      if (isMobileLayout() && !activated) {
-        e.preventDefault(); // prevent modal
-        activated = true;
-
-        togglePreviewGif(preview, true);
-        preview.style.transition = 'transform 0.3s ease';
-        preview.style.transform = 'scaleX(1.03)';
-        left?.classList.add('show');
-        right?.classList.add('show');
-
-        let playBtn = preview.querySelector('.play-button');
-        if (!playBtn) {
-          playBtn = document.createElement('div');
-          playBtn.className = 'play-button';
-          playBtn.innerHTML = '▶';
-          preview.appendChild(playBtn);
-        }
-        playBtn.classList.add('show');
-
-        const outsideClick = (ev) => {
-          if (!preview.contains(ev.target)) {
-            resetPreview(preview);
-            activated = false;
-            document.removeEventListener('click', outsideClick);
+            selectedPreview = preview;
+            activatePreview(preview);
           }
-        };
-        document.addEventListener('click', outsideClick);
-        return; // exit to prevent modal opening
-      }
-
-      // --- SECOND TAP / DESKTOP CLICK ---
-      activated = false;
-      resetPreview(preview);
-
-      // Load video
-      if (preview.dataset.vimeoId) {
-        iframe.src = `https://player.vimeo.com/video/${preview.dataset.vimeoId}?title=0&byline=0&portrait=0&autoplay=0`;
-      } else if (preview.dataset.youtubeId) {
-        iframe.src = `https://www.youtube.com/embed/${preview.dataset.youtubeId}?autoplay=0&rel=0`;
-      }
-
-      videoModal.style.display = 'flex';
-      modalLeft.innerHTML = left?.querySelector('p')?.innerHTML || '';
-      modalRight.innerHTML = right?.querySelector('p')?.innerHTML || '';
-
-      requestAnimationFrame(() => {
-        videoModal.classList.add('show');
-        modalPlayer.classList.add('show');
-        modalLeft.classList.add('show');
-        modalRight.classList.add('show');
-      });
+        }
     });
   });
 
+  // Preview activate helper function
+  function activatePreview(preview) {
+    const block = preview.closest('.reel-block, .video-block');
+    const leftDesc = block.querySelector('.reel-description.left, .video-description.left');
+    const rightDesc = block.querySelector('.reel-description.right, .video-description.right');
+    const thumb = preview.querySelector('.video-thumb');
+    const playButton = preview.querySelector('.play-button');
+
+    preview.classList.add('active');
+    if(leftDesc) leftDesc.classList.add('show');
+    if(rightDesc) rightDesc.classList.add('show');
+    if (playButton) playButton.classList.add('show');
+
+    if (thumb) thumb.style.filter = 'grayscale(0%) brightness(1)';
+    preview.style.transform = 'scaleX(1.03)';
+  }
+
+  // Preview reset helper function
+  function resetPreview(preview) {
+    const block = preview.closest('.reel-block, .video-block');
+    const leftDesc = block.querySelector('.reel-description.left, .video-description.left');
+    const rightDesc = block.querySelector('.reel-description.right, .video-description.right');
+    const thumb = preview.querySelector('.video-thumb');
+    const playButton = preview.querySelector('.play-button');
+
+    preview.classList.remove('active');
+    if (leftDesc) leftDesc.classList.remove('show');
+    if (rightDesc) rightDesc.classList.remove('show');
+    if (playButton) playButton.classList.remove('show');
+
+    if (thumb) thumb.style.filter = '';
+    preview.style.transform = '';
+  }
+
   // ========== Hover Text ========== //
   const contentContainer = document.querySelector('.content');
+  const wrappers = document.querySelectorAll('.reel-wrapper, .video-wrapper');
 
   const toggleHoverTexts = (preview, add = true) => {
     if (!preview) return;
-    const { left, right } = getDescriptions(preview);
+    const block = preview.closest('.reel-block, .video-block');
+    const left = block?.querySelector('.reel-description.left, .video-description.left');
+    const right = block?.querySelector('.reel-description.right, .video-description.right');
     left?.classList[add ? 'add' : 'remove']('show');
     right?.classList[add ? 'add' : 'remove']('show');
   };
 
   contentContainer.addEventListener('mouseover', e => {
-    if (!isMobileLayout()) toggleHoverTexts(e.target.closest('.reel-preview, .video-preview'), true);
+    if (!isMobile()) {
+      const preview = e.target.closest('.reel-preview, .video-preview');
+      toggleHoverTexts(preview, true);
+    }
   });
 
   contentContainer.addEventListener('mouseout', e => {
-    if (!isMobileLayout()) toggleHoverTexts(e.target.closest('.reel-preview, .video-preview'), false);
+    if (!isMobile()) {
+      const preview = e.target.closest('.reel-preview, .video-preview');
+      toggleHoverTexts(preview, false);
+    }
   });
 
   // ========== Disable Drag / Context Menu ========== //
-  document.querySelectorAll('.reel-preview img, .reel-preview video, .video-preview img, .video-preview video')
+  document.querySelectorAll('.reel-preview img, .reel-preview video, .video-preview img, .video-preview video, .gif')
     .forEach(media => {
       media.setAttribute('draggable', 'false');
-      media.addEventListener('contextmenu', e => e.preventDefault());
   });
 
-  // ========== Window Resize ========== //
-  let wasMobile = isMobileLayout();
-  window.addEventListener('resize', () => {
-    const nowMobile = isMobileLayout();
-    if (wasMobile !== nowMobile) previews.forEach(resetPreview);
-    wasMobile = nowMobile;
+  document.addEventListener('contextmenu', function (event) {
+    event.preventDefault()
+    return false
   });
 
   // ========== Document Click (Consolidated) ========== //
   document.addEventListener('click', (e) => {
     //close dropdown
     if (!titleFilter.contains(e.target)) titleFilter.classList.remove('active');
+    if (!hamburgerWrapper.contains(e.target)) hamburgerWrapper.classList.remove('active');
 
-    //close modal
-    if (videoModal.classList.contains('show') &&
-        (e.target === closeModal || !e.target.closest('.video-modal-player'))){
-      videoModal.classList.remove('show');
-      modalPlayer.classList.remove('show');
-      modalLeft.classList.remove('show');
-      modalRight.classList.remove('show');
-      setTimeout(() => { videoModal.style.display = 'none'; iframe.src = ''; }, 400);
+    // Close modal if clicking close button or outside modal player
+    if (videoModal.classList.contains('show')) {
+      if (e.target === closeModalButton || 
+          e.target.closest('.close-modal-button') ||
+          (!e.target.closest('.video-modal-player') && e.target !== modalPlayer)) {
+        closeModal();
+      }
+    }
+    
+    if (isMobile() && selectedPreview) {
+      const clickedPreview = e.target.closest('.reel-preview, .video-preview');
+
+      if (!clickedPreview || clickedPreview !== selectedPreview) {
+        resetPreview(selectedPreview);
+        selectedPreview = null;
+      }
     }
   });
 });
