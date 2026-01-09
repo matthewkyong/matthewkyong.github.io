@@ -1062,6 +1062,23 @@ html[data-theme="phasmo"] .phasmo-overlay {
 .modal-description.left {text-align: left;}
 .modal-description.right {text-align: right;}
 
+.video-modal-background {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.7);
+    pointer-events: none;
+    opacity: 0;
+    transition: opacity var(--transition-fast);
+    z-index: 998;
+}
+
+.video-modal-background.show {
+    opacity: 1;
+}
+
 .content {
     padding-bottom: 5rem;
 }

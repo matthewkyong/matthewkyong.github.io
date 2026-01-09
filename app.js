@@ -383,11 +383,14 @@ document.addEventListener('DOMContentLoaded', () => {
   const modalPlayer = videoModal.querySelector('.video-modal-player');
   const modalLeft = videoModal.querySelector('.modal-description.left');
   const modalRight = videoModal.querySelector('.modal-description.right');
+  const modalBackground = document.querySelector('.video-modal-background');
+
 
   function openModal(preview) {
     const block = preview.closest('.reel-block, .video-block');
     const leftDesc = block.querySelector('.modal-description-data.left');
     const rightDesc = block.querySelector('.modal-description-data.right');
+
 
     // Load video source
     if (preview.dataset.vimeoId) {
@@ -407,6 +410,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // Show modal with animation
     requestAnimationFrame(() => {
+      modalBackground.classList.add('show');
       videoModal.classList.add('show');
       modalPlayer.classList.add('show');
       modalLeft.classList.add('show');
@@ -415,6 +419,7 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 
   function closeModal() {
+    modalBackground.classList.remove('show');
     videoModal.classList.remove('show');
     modalPlayer.classList.remove('show');
     modalLeft.classList.remove('show');
