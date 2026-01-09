@@ -347,6 +347,8 @@ document.addEventListener('DOMContentLoaded', () => {
         if (!video.dataset.loaded) {
           video.load();
           video.dataset.loaded = 'true';
+          // Set preload="auto" after first load to keep video cached
+          video.setAttribute('preload', 'auto');
         }
         video.currentTime = 0;
         video.play();
@@ -358,6 +360,8 @@ document.addEventListener('DOMContentLoaded', () => {
         if (!overlayVideo.dataset.loaded) {
           overlayVideo.load();
           overlayVideo.dataset.loaded = 'true';
+          // Set preload="auto" after first load to keep video cached
+          overlayVideo.setAttribute('preload', 'auto');
         }
         overlayVideo.currentTime = 0;
         overlayVideo.play();
