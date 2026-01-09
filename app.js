@@ -370,8 +370,10 @@ document.addEventListener('DOMContentLoaded', () => {
   });
     
     preview.addEventListener('mouseleave', () => {
-      video.pause();
-      video.currentTime = 0;
+      if (video) {
+        video.pause();
+        video.currentTime = 0;
+      }
 
       if (overlayVideo) {
         overlayVideo.pause();
