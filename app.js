@@ -1,5 +1,12 @@
 document.addEventListener('DOMContentLoaded', () => {
 
+  document.querySelectorAll('img, video').forEach(media => {
+    media.addEventListener('error', function() {
+      console.warn('Failed to load:', this.src);
+      this.style.display = 'none';
+    });
+  });
+
   // ========== Detect if mobile ========== //
   window.isMobile = function() {
     if(window.matchMedia("(any-hover:none)").matches) {
@@ -27,18 +34,27 @@ document.addEventListener('DOMContentLoaded', () => {
 
   // Check for saved theme preference or default to system preference
   const getPreferredTheme = () => {
-    const savedTheme = localStorage.getItem('theme');
-    if (savedTheme) {
-      return savedTheme;
+    try {
+      const savedTheme = localStorage.getItem('theme');
+      if (savedTheme) {
+        return savedTheme;
+      }
+    } catch (e) {
+      console.warn('localStorage not available:', e);
     }
-    return 'dark'
+    return 'dark';
   };
 
   // Apply theme
   const setTheme = (theme) => {
     document.documentElement.setAttribute('data-theme', theme);
     document.body.setAttribute('data-theme', theme);
-    localStorage.setItem('theme', theme);
+
+    try {
+      localStorage.setItem('theme', theme);
+    } catch (e) {
+      console.warn('Could not save theme:', e);
+    }
 
     if (theme === 'light') {
       themeToggle.classList.add('dark-toggle');
@@ -370,8 +386,8 @@ document.addEventListener('DOMContentLoaded', () => {
 
   function openModal(preview) {
     const block = preview.closest('.reel-block, .video-block');
-    const leftDesc = block.querySelector('.reel-description.left, .video-description.left');
-    const rightDesc = block.querySelector('.reel-description.right, .video-description.right');
+    const leftDesc = block.querySelector('.modal-description-data.left');
+    const rightDesc = block.querySelector('.modal-description-data.right');
 
     // Load video source
     if (preview.dataset.vimeoId) {
@@ -420,13 +436,13 @@ document.addEventListener('DOMContentLoaded', () => {
       // mobile device
       } else if (isMobile()) {
           if (selectedPreview === preview) {
+            resetPreview(preview);
             openModal(preview);
             selectedPreview = null;
           } else {
             if (selectedPreview) {
               resetPreview(selectedPreview);
             }
-
             selectedPreview = preview;
             activatePreview(preview);
           }
@@ -458,6 +474,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const rightDesc = block.querySelector('.reel-description.right, .video-description.right');
     const thumb = preview.querySelector('.video-thumb');
     const playButton = preview.querySelector('.play-button');
+    const video = preview.querySelector('.reel-preview-video, .video-preview-video');
 
     preview.classList.remove('active');
     if (leftDesc) leftDesc.classList.remove('show');
